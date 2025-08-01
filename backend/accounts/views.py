@@ -15,11 +15,51 @@ class RegisterView(APIView):
             serializer.save()
             return Response({'message': 'User created successfully'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
 
 
 @api_view(['POST']) 
 @permission_classes([IsAuthenticated])
-def my_protected_view(request):
-    user = request.user
-    return Response({"message": f"Hello, {user.username}!"})
+def changeUsername(request):
+    try:
+        new_username = request.data.get('username')
+        
+        if not new_username:
+            return Response(
+                {"error": "Username is required"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if not new_username.strip():
+            return Response(
+                {"error": "Username cannot be empty"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if User.objects.filter(username=new_username).exclude(id=request.user.id).exists():
+            return Response(
+                {"error": "Username already exists"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if len(new_username) < 3:
+            return Response(
+                {"error": "Username must be at least 3 characters long"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        user = request.user
+        user.username = new_username
+        user.save()
+        
+        return Response(
+            {"message": "Username changed successfully", "new_username": new_username}, 
+            status=status.HTTP_200_OK
+        )
+        
+    except Exception as e:
+        return Response(
+            {"error": "An error occurred while changing username"}, 
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+ 
+
