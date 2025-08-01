@@ -3,7 +3,6 @@ from rest_framework.response import Response
 from rest_framework import status
 from .serializer import RegisterSerializer
 from django.contrib.auth.models import User
-from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
@@ -59,6 +58,46 @@ def changeUsername(request):
     except Exception as e:
         return Response(
             {"error": "An error occurred while changing username"}, 
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['POST']) 
+@permission_classes([IsAuthenticated])
+def changePassword(request):
+    try:
+        new_password = request.data.get('password')
+        
+        if not new_password:
+            return Response(
+                {"error": "Password is required"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if not new_password.strip():
+            return Response(
+                {"error": "Password cannot be empty"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if len(new_password) < 8:
+            return Response(
+                {"error": "Password must be at least 8 characters long"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        user = request.user
+        user.set_password(new_password)
+        user.save()
+        
+        return Response(
+            {"message": "Password changed successfully"}, 
+            status=status.HTTP_200_OK
+        )
+        
+    except Exception as e:
+        return Response(
+            {"error": "An error occurred while changing password"}, 
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
  
