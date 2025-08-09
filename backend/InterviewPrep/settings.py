@@ -12,21 +12,27 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+import os
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load environment variables from .env located at BASE_DIR
+load_dotenv(BASE_DIR / '.env')
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-j4+=is0ytu#&a+*ry$_2te6_70dci*v#2-0crd@elmtb)3ly&a'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-j4+=is0ytu#&a+*ry$_2te6_70dci*v#2-0crd@elmtb)3ly&a')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DJANGO_DEBUG', 'True').lower() in ('1', 'true', 'yes', 'on')
 
-ALLOWED_HOSTS = []
+_allowed_hosts = os.getenv('DJANGO_ALLOWED_HOSTS')
+ALLOWED_HOSTS = [h.strip() for h in _allowed_hosts.split(',')] if _allowed_hosts else []
 
 
 # Application definition
@@ -87,6 +93,11 @@ TEMPLATES = [
         },
     },
 ]
+
+GOOGLE_OAUTH2_CLIENT_ID = os.getenv("GOOGLE_OAUTH2_CLIENT_ID", "")
+GOOGLE_OAUTH2_CLIENT_SECRET = os.getenv("GOOGLE_OAUTH2_CLIENT_SECRET", "")
+GOOGLE_OAUTH2_REDIRECT_URI = os.getenv("GOOGLE_OAUTH2_REDIRECT_URI", "http://localhost:3000/google-callback")
+GOOGLE_TOKEN_ENDPOINT = os.getenv("GOOGLE_TOKEN_ENDPOINT", "https://oauth2.googleapis.com/token")
 
 WSGI_APPLICATION = 'InterviewPrep.wsgi.application'
 
